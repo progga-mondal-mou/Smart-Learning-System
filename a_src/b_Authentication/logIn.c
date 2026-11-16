@@ -2,7 +2,7 @@
 #include<string.h>
 #include "../../b_include/auth.h"
 
-int LogInUser(char *filename,char *usernameout)
+int LogInUser(const char *filename, char *usernameout, const char *role)
 {
     FILE *login;
 
@@ -16,8 +16,7 @@ int LogInUser(char *filename,char *usernameout)
     
     char line[300];
     char filePath[100];
-   
-    sprintf(filePath,"../c_data/%s", filename);
+    snprintf(filePath, sizeof(filePath), "c_data/%s", filename);
 
 
     
@@ -29,9 +28,9 @@ int LogInUser(char *filename,char *usernameout)
         return 0;
     }
 
-    printf("\n===== LOGIN =====\n");
+    printf("\n===== %s LOGIN =====\n",role);
     getchar();
-    printf("Enter UserName: ");
+    printf("\nEnter UserName: ");
     if (fgets(userName, sizeof(userName), stdin) == NULL)
     {
         fclose(login);
@@ -75,20 +74,18 @@ int LogInUser(char *filename,char *usernameout)
     printf("\nLOGIN FAILED!\n");
     printf("Invalid Username or Password!\n");
     return 0;
+}                     
+// Student Login
+int StudentLogin(char *usernameout)
+{ 
+    return LogInUser("student.txt", usernameout,"STUDENT");
 }
-//Student Registration                      
-int StudentLogin(char *usernameout){ 
-     char username[20];                
-    LogInUser("../../c_data/student.txt", username); 
-    return 1;
-}                                           
                                             
                                             
-//Teacher Registration                      
+//Teacher Login                     
 int TeacherLogin(char *usernameout){ 
-     char username[20];                
-    LogInUser("../../c_data/tearcher.txt",username);
-    return 1;
+                  
+    return LogInUser("teacher.txt",usernameout,"TEACHER");
 }                                           
                                             
                                             

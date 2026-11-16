@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../b_include/auth.h"
+#include "../b_include/student.h"
 
 char userName[100];
 
@@ -17,14 +18,31 @@ void StudentPortal()
     switch (choice)
     {
     case 1:
-      printf("Registration portal\n");
+      system("cls");
+
+      //printf("Registration portal\n");
       getchar();
       StudentRegistration();
       break;
     case 2:
-      printf("Login portal");
-      StudentLogin(userName);
-      break;
+      {
+        system("cls");
+    printf("\nStudent Login\n");
+
+    if (StudentLogin(userName))
+    {
+        //printf("\nLogin Successful!\n");
+        InitialAssessment(userName);
+        // Next: Student Dashboard
+    }
+    else
+    {
+        printf("\nLogin Failed!\n");
+    }
+
+    break;
+      }
+      
     case 3:
       printf("Thank you\n\n");
       break;
@@ -49,14 +67,25 @@ void TeacherPortal()
     switch (choice)
     {
     case 1:
-      printf("Registration portal\n");
+        system("cls");
+
+      //printf("\nRegistration portal\n");
       getchar();
       TeacherRegistration();
       break;
     case 2:
-      printf("\nTeacher's Login portal");
-      TeacherLogin(userName);
-      break;
+    {
+        system("cls");
+
+      //printf("\nTeacher Login");
+
+       if (TeacherLogin(userName))
+    {
+        printf("\nTeacher Login Successful!\n");
+    }
+    break;
+    }
+
     case 3:
       printf("Thank you\n\n");
       break;

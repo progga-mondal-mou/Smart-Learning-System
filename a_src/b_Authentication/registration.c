@@ -14,7 +14,9 @@ void RegisterUser(const char *filename, const char *role)
     char password[100];
     
     char filePath[100];
-    sprintf(filePath, "../c_data/%s", filename);
+    snprintf(filePath, sizeof(filePath), "c_data/%s", filename);
+
+    //printf("\nTrying to open: %s\n", filePath);
 
     reg = fopen(filePath, "a");
 
@@ -23,10 +25,11 @@ void RegisterUser(const char *filename, const char *role)
         printf("Error opening file!\n");
         return;
     }
-
+        //system("cls");
+     
     printf("\n===== %s REGISTRATION =====\n", role);
 
-    printf("Enter Full name: ");
+    printf("\nEnter Full name: ");
     fgets(fullName, sizeof(fullName), stdin);
     fullName[strcspn(fullName, "\n")] = '\0';
 
@@ -59,3 +62,7 @@ void StudentRegistration(){
 void TeacherRegistration(){
     RegisterUser("teacher.txt", "Teacher");
 }
+
+
+
+

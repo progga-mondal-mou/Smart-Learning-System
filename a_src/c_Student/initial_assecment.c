@@ -1,9 +1,9 @@
-
 #include <stdio.h>
 #include <string.h>
-#include "../include/student.h"
+#include "../../b_include/student.h"
 
 #define TOTAL_QUESTIONS 9
+#define ASSESSMENT_FILE "c_data/student_assessment.txt"
 
 typedef struct
 {
@@ -16,74 +16,86 @@ typedef struct
     int correctAnswer;
 } Question;
 
-int AssessmentCompleted(const char *studentId)
+int AssessmentCompleted(const char *userName)
 {
-    FILE *fp;
-    char id[50];
-    char status[20];
+    FILE *assessment;
 
-    fp = fopen("data/assessment_status.txt", "r");
+    char line[300];
+    char username[50];
+    char topic[30];
+    char level[20];
 
-    if (fp == NULL)
+    int correct, total;
+    float percentage;
+
+    int basicFound = 0;
+    int loopFound = 0;
+    int arrayFound = 0;
+
+    assessment = fopen(ASSESSMENT_FILE, "r");
+
+    if (assessment == NULL)
         return 0;
 
-    while (fscanf(fp, "%49[^|]|%19s\n", id, status) == 2)
+    while (fgets(line, sizeof(line), assessment) != NULL)
     {
-        if (strcmp(id, studentId) == 0 &&
-            strcmp(status, "DONE") == 0)
+        if (sscanf(line,
+                   "%49[^|]|%29[^|]|%d|%d|%f|%19[^\r\n]",
+                   username, topic, &correct, &total,
+                   &percentage, level) == 6)
         {
-            fclose(fp);
-            return 1;
+            if (strcmp(username, userName) == 0)
+            {
+                if (strcmp(topic, "Basic_C") == 0)
+                    basicFound = 1;
+
+                else if (strcmp(topic, "Loop") == 0)
+                    loopFound = 1;
+
+                else if (strcmp(topic, "Array") == 0)
+                    arrayFound = 1;
+            }
         }
     }
 
-    fclose(fp);
-    return 0;
+    fclose(assessment);
+
+    return basicFound && loopFound && arrayFound;
 }
 
-void SaveAssessmentStatus(const char *studentId)
-{
-    FILE *fp = fopen("data/assessment_status.txt", "a");
-
-    if (fp == NULL)
-    {
-        printf("File Error!\n");
-        return;
-    }
-
-    fprintf(fp, "%s|DONE\n", studentId);
-
-    fclose(fp);
-}
-
-void SaveAssessmentResult(
-    const char *studentId,
+int SaveAssessmentResult(
+    const char *username,
     const char *topic,
     int correct,
     int total,
     float percentage,
     const char *level)
 {
-    FILE *fp = fopen("data/assessment.txt", "a");
+    FILE *assessment;
 
-    if (fp == NULL)
+    assessment = fopen(ASSESSMENT_FILE, "a");
+
+    if (assessment == NULL)
     {
-        printf("Unable to save assessment result!\n");
-        return;
+        printf("\nUnable to save assessment result!\n");
+        return 0;
     }
 
-    fprintf(fp, "%s|%s|%d|%d|%.2f|%s\n",
-            studentId,
+    fprintf(assessment, "%s|%s|%d|%d|%.2f|%s\n",
+            username,
             topic,
             correct,
             total,
             percentage,
             level);
 
-    fclose(fp);
+    if (fclose(assessment) != 0)
+        return 0;
+
+    return 1;
 }
 
-void InitialAssessment(const char *studentId)
+void InitialAssessment(const char *userName)
 {
     Question questions[TOTAL_QUESTIONS] =
     {
@@ -135,42 +147,65 @@ void InitialAssessment(const char *studentId)
         }
     };
 
+
+    // Topic-wise score
     int correct[3] = {0, 0, 0};
     int total[3] = {0, 0, 0};
+
+    // Overall score
+    int grandCorrect = 0;
+    int grandTotal = 0;
+    int grandWrong = 0;
+
     float percentage;
+    float overallPercentage;
+
     int answer;
     int i, topicIndex;
 
-    char *topics[] = {"Basic_C", "Loop", "Array"};
-    char level[10];
+    char *topics[] = {
+        "Basic_C",
+        "Loop",
+        "Array"
+    };
 
-    if (AssessmentCompleted(studentId))
+    char level[20];
+    char overallLevel[20];
+
+    if (AssessmentCompleted(userName))
     {
-        printf("\nInitial Assessment already completed!\n");
+        printf("\n==========Initial Assessment Already Completed!==========\n");
+        // printf("Initial Assessment Already Completed!\n");
+        // printf("No need to take the assessment again.\n");
+        // printf("====================================\n");
+
         return;
     }
 
-    printf("\n====================================\n");
-    printf("        INITIAL ASSESSMENT\n");
-    printf("====================================\n");
 
-    printf("Student ID: %s\n", studentId);
+    printf("\n============INITIAL ASSESSMENT============\n");
+
+    printf("Student ID: %s\n", userName);
+
     printf("Total Questions: %d\n", TOTAL_QUESTIONS);
 
-    printf("\nLet's start your Diagnostic Test!\n");
+    printf("\nLet's start your Initial Test!\n");
 
     for (i = 0; i < TOTAL_QUESTIONS; i++)
     {
         if (strcmp(questions[i].topic, "Basic_C") == 0)
             topicIndex = 0;
+
         else if (strcmp(questions[i].topic, "Loop") == 0)
             topicIndex = 1;
+
         else
             topicIndex = 2;
 
         printf("\n------------------------------------\n");
-        printf("Topic: %s\n", questions[i].topic);
-        printf("Q%d. %s\n", i + 1, questions[i].question);
+
+        printf("Q%d. %s\n",
+               i + 1, questions[i].question);
 
         printf("1. %s\n", questions[i].option1);
         printf("2. %s\n", questions[i].option2);
@@ -179,15 +214,22 @@ void InitialAssessment(const char *studentId)
 
         printf("Enter your answer (1-4): ");
 
+
         if (scanf("%d", &answer) != 1)
         {
-            printf("Invalid input! Assessment cancelled.\n");
+            int ch;
+
+            while ((ch = getchar()) != '\n' && ch != EOF);
+
+            printf("\nInvalid input! Assessment cancelled.\n");
+
             return;
         }
 
         if (answer < 1 || answer > 4)
         {
-            printf("Invalid option! Assessment cancelled.\n");
+            printf("\nInvalid option! Assessment cancelled.\n");
+
             return;
         }
 
@@ -196,48 +238,117 @@ void InitialAssessment(const char *studentId)
         if (answer == questions[i].correctAnswer)
         {
             correct[topicIndex]++;
-            printf("Correct Answer!\n");
+
+            printf("\nCorrect Answer!\n");
         }
         else
         {
-            printf("Wrong Answer!\n");
+            printf("\nWrong Answer!\n");
+
             printf("Correct Option: %d\n",
                    questions[i].correctAnswer);
         }
     }
 
-    printf("\n====================================\n");
-    printf("       ASSESSMENT RESULT\n");
-    printf("====================================\n");
-
+    printf("\n===========TOPIC-WISE RESULT==========\n");
+    
     for (i = 0; i < 3; i++)
     {
-        percentage = (float)correct[i] / total[i] * 100;
+        if (total[i] > 0)
+            percentage =
+                (float)correct[i] / total[i] * 100;
 
-        // Example thresholds; can be changed later.
+        else
+            percentage = 0;
+
+        // Determine Topic Level
+
         if (percentage >= 80)
             strcpy(level, "Hard");
+
         else if (percentage >= 50)
             strcpy(level, "Medium");
+
         else
             strcpy(level, "Easy");
 
+        // Display Topic Result
+
         printf("\nTopic: %s\n", topics[i]);
-        printf("Correct: %d/%d\n", correct[i], total[i]);
+
+        printf("Correct Answers: %d/%d\n",
+               correct[i], total[i]);
+
+        printf("Wrong Answers: %d/%d\n",
+               total[i] - correct[i], total[i]);
+
         printf("Percentage: %.2f%%\n", percentage);
+
         printf("Initial Level: %s\n", level);
 
-        SaveAssessmentResult(
-            studentId,
-            topics[i],
-            correct[i],
-            total[i],
-            percentage,
-            level
-        );
+        // Calculate Overall Score
+
+        grandCorrect += correct[i];
+
+        grandTotal += total[i];
+
+        // Save Topic Result
+
+        if (!SaveAssessmentResult(
+                userName,
+                topics[i],
+                correct[i],
+                total[i],
+                percentage,
+                level))
+        {
+            printf("\nAssessment Result Saving Failed!\n");
+
+            return;
+        }
     }
 
-    SaveAssessmentStatus(studentId);
+    grandWrong = grandTotal - grandCorrect;
 
-    printf("\nAssessment Completed Successfully!\n");
+    overallPercentage =
+        (float)grandCorrect / grandTotal * 100;
+
+    if (overallPercentage >= 80)
+        strcpy(overallLevel, "Hard");
+
+    else if (overallPercentage >= 50)
+        strcpy(overallLevel, "Medium");
+
+    else
+        strcpy(overallLevel, "Easy");
+
+    printf("\n\n");
+    printf("===========FINAL ASSESSMENT REPORT==========\n");
+
+    printf("\nStudent ID: %s\n", userName);
+
+    printf("\nTotal Questions : %d\n", grandTotal);
+
+    printf("Total Score     : %d/%d\n",
+           grandCorrect, grandTotal);
+
+    printf("Correct Answers : %d\n", grandCorrect);
+
+    printf("Wrong Answers   : %d\n", grandWrong);
+
+    printf("Percentage      : %.2f%%\n",
+           overallPercentage);
+
+    printf("Overall Level   : %s\n", overallLevel);
+
+    printf("\n===========ASSESSMENT COMPLETED SUCCESSFULLY!===========\n");
+
+    if (AssessmentCompleted(userName))
+    {
+        printf("\nAssessment Result Saved Successfully!\n");
+    }
+    else
+    {
+        printf("\nAssessment Completion Verification Failed!\n");
+    }
 }

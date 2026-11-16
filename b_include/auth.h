@@ -2,16 +2,13 @@
 #define auth_h
 
 //student Registration
-void RegisterUser();
+void RegisterUser(const char *filename, const char *role);
 
 //Student login
-int LogInUser(char *usernameout,char *role);
-
-//Password
-int ValidPassword(const char* password);
+int LogInUser(const char *filename, char *usernameout, const char *role);
 
 // Logout
-void logoutUser(void);
+//void logoutUser(void);
 
 //Student Registration
 void StudentRegistration();
