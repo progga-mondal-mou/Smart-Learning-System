@@ -27,13 +27,12 @@ void StudentPortal()
     case 2:
       {
         system("cls");
-    printf("\nStudent Login\n");
+    //printf("\nStudent Login\n");
 
     if (StudentLogin(userName))
     {
-        //printf("\nLogin Successful!\n");
-        InitialAssessment(userName);
-        // Next: Student Dashboard
+         InitialAssessment(userName);
+         studentDashboard(userName); 
     }
     else
     {

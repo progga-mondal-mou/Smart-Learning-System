@@ -22,4 +22,7 @@ void InitialAssessment(const char *userName);
 // void Examination();
 //void ProgressReport();
 // 
+void studentDashboard(const char * userName);
+
+
 #endif
